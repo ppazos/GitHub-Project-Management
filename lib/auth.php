@@ -26,7 +26,7 @@ function require_auth(): array {
         json_error('Unauthorized', 401);
     }
 
-    header('Location: /auth/login');
+    header('Location: ' . APP_BASE . '/auth/login');
     exit;
 }
 
@@ -46,5 +46,5 @@ function require_csrf(array $user): void {
  * Returns true when the current request is under /api/.
  */
 function is_api_request(): bool {
-    return str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/api/');
+    return str_contains($_SERVER['REQUEST_URI'] ?? '', '/api/');
 }

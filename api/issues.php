@@ -2,13 +2,15 @@
 /**
  * GET /api/issues?repo=owner/repo&milestone=<number>
  *
- * Returns issues grouped into the four Kanban columns.
- * Status is derived from the status:* label; defaults to "todo".
+ * Returns issues for a milestone with their saved display positions.
+ * Issues are sorted by position (ascending); issues with no saved position
+ * sort after those that have one, preserving GitHub's default order among them.
  */
 
 require_once __DIR__ . '/../lib/bootstrap.php';
 require_once __DIR__ . '/../lib/auth.php';
 require_once __DIR__ . '/../lib/github.php';
+require_once __DIR__ . '/../lib/db.php';
 
 $user = require_auth();
 
@@ -33,12 +35,19 @@ try {
     json_error($e->getMessage(), (int) $code);
 }
 
+// Load saved positions for this repo from the database
+$db   = get_db();
+$stmt = $db->prepare(
+    'SELECT issue_number, position FROM issue_positions WHERE repo = ?'
+);
+$stmt->execute([$repo]);
+$positions = [];
+foreach ($stmt->fetchAll() as $row) {
+    $positions[(int) $row['issue_number']] = (float) $row['position'];
+}
+
 const STATUS_LABELS = ['status:todo', 'status:in-progress', 'status:review', 'status:done'];
 
-/**
- * Extract the status:* label value from an issue's labels array.
- * Falls back to 'todo' if none is present.
- */
 function derive_status(array $labels): string {
     foreach ($labels as $label) {
         $ln = strtolower($label['name']);
@@ -54,6 +63,8 @@ $result = array_map(fn($i) => [
     'title'     => $i['title'],
     'state'     => $i['state'],
     'status'    => derive_status($i['labels']),
+    // Issues without a saved position get PHP_INT_MAX so they sort to the bottom
+    'position'  => $positions[$i['number']] ?? PHP_INT_MAX,
     'labels'    => array_map(fn($l) => [
         'name'  => $l['name'],
         'color' => $l['color'],
@@ -66,5 +77,8 @@ $result = array_map(fn($i) => [
     'created_at'=> $i['created_at'],
     'updated_at'=> $i['updated_at'],
 ], $issues);
+
+// Sort by position so the frontend can render in order directly
+usort($result, fn($a, $b) => $a['position'] <=> $b['position']);
 
 json_response($result);

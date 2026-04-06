@@ -186,6 +186,15 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
       line-height: 1.2;
     }
 
+    /* Drop insertion indicator */
+    .drop-indicator {
+      height: 3px;
+      background: #0d6efd;
+      border-radius: 2px;
+      margin: 2px 0;
+      pointer-events: none;
+    }
+
     /* -----------------------------------------------------------------------
        Misc
     ----------------------------------------------------------------------- */
@@ -724,16 +733,21 @@ $(document).on('click', '.card-actions button', function (e) {
 
 /* =============================================================================
    Drag and Drop
+   Supports:
+   - Moving cards between columns (updates status:* label on GitHub)
+   - Reordering cards within a column (saves position to local DB)
+   An insertion indicator line shows exactly where the card will land.
 ============================================================================= */
 
-let draggedCard = null;
+let draggedCard    = null;
+let dragOriginCol  = null;
 
-function initDragDrop() {
-  // Cards are re-rendered each time, so we use event delegation
-}
+// The placeholder line shown between cards during drag
+const $dropIndicator = $('<div class="drop-indicator"></div>');
 
 $(document).on('dragstart', '.issue-card', function (e) {
-  draggedCard = this;
+  draggedCard   = this;
+  dragOriginCol = $(this).closest('.kanban-col-body').data('col');
   $(this).addClass('dragging');
   e.originalEvent.dataTransfer.effectAllowed = 'move';
   e.originalEvent.dataTransfer.setData('text/plain', $(this).data('number'));
@@ -741,20 +755,43 @@ $(document).on('dragstart', '.issue-card', function (e) {
 
 $(document).on('dragend', '.issue-card', function () {
   $(this).removeClass('dragging');
-  draggedCard = null;
+  $dropIndicator.detach();
   $('.kanban-col-body').removeClass('drag-over');
+  draggedCard   = null;
+  dragOriginCol = null;
 });
 
 $(document).on('dragover', '.kanban-col-body', function (e) {
   e.preventDefault();
   e.originalEvent.dataTransfer.dropEffect = 'move';
   $(this).addClass('drag-over');
+
+  // Find the card the cursor is over (excluding the dragged card itself)
+  const $col   = $(this);
+  const mouseY = e.originalEvent.clientY;
+  let $after   = null; // card to insert before (null = append to end)
+
+  $col.find('.issue-card:not(.dragging)').each(function () {
+    const rect   = this.getBoundingClientRect();
+    const middle = rect.top + rect.height / 2;
+    if (mouseY < middle) {
+      $after = $(this);
+      return false; // break
+    }
+  });
+
+  // Position the indicator
+  if ($after) {
+    $after.before($dropIndicator);
+  } else {
+    $col.append($dropIndicator);
+  }
 });
 
 $(document).on('dragleave', '.kanban-col-body', function (e) {
-  // Only remove if leaving the column body itself (not a child)
   if (!$(this).is($(e.relatedTarget).closest('.kanban-col-body'))) {
     $(this).removeClass('drag-over');
+    $dropIndicator.detach();
   }
 });
 
@@ -764,40 +801,69 @@ $(document).on('drop', '.kanban-col-body', function (e) {
 
   if (!draggedCard) { return; }
 
-  const $col       = $(this);
-  const newCol     = $col.data('col');
-  const $card      = $(draggedCard);
-  const currentCol = $card.data('status');
-  const number     = parseInt($card.data('number'), 10);
+  const $col     = $(this);
+  const newCol   = $col.data('col');
+  const $card    = $(draggedCard);
+  const prevCol  = $card.data('status');
+  const number   = parseInt($card.data('number'), 10);
 
-  if (newCol === currentCol) { return; }
-
-  // Optimistic UI update
-  $col.append($card);
+  // Insert card at the indicator position, then remove the indicator
+  $dropIndicator.replaceWith($card);
   $card.data('status', newCol);
   updateColCounts();
 
-  // Persist to GitHub via backend
+  // Always save the new order for every column the drop affected
+  const saveOrder = () => saveColumnOrder(newCol, prevCol !== newCol ? prevCol : null);
+
+  if (newCol === prevCol) {
+    // Same-column reorder — only save positions
+    saveOrder();
+    return;
+  }
+
+  // Cross-column move — update label on GitHub, then save positions
   apiPost(BASE + '/api/issue_update', {
     repo:         App.repo.full_name,
     issue_number: number,
     action:       'move',
     column:       newCol,
   })
-  .done(function (res) {
-    // Update local issue state
+  .done(function () {
     const idx = App.issues.findIndex(i => i.number === number);
     if (idx !== -1) { App.issues[idx].status = newCol; }
     toast(`Moved #${number} to ${colLabel(newCol)}`);
+    saveOrder();
   })
   .fail(function (xhr) {
-    // Revert card position
-    $(`.kanban-col-body[data-col="${currentCol}"]`).append($card);
-    $card.data('status', currentCol);
+    // Revert: put card back at the end of its original column
+    $(`.kanban-col-body[data-col="${prevCol}"]`).append($card);
+    $card.data('status', prevCol);
     updateColCounts();
     toast('Failed to move issue: ' + (xhr.responseJSON?.error ?? 'Unknown'), 'error');
   });
 });
+
+/**
+ * Collect the current DOM order of all cards across the board and persist
+ * it via /api/issue_order. Optionally pass two column IDs when a card moved
+ * between columns (both need their order saved).
+ */
+function saveColumnOrder(col1, col2 = null) {
+  // Build the full ordered list across all columns so positions are global
+  const numbers = [];
+  document.querySelectorAll('.kanban-col-body').forEach(body => {
+    body.querySelectorAll('.issue-card').forEach(card => {
+      numbers.push(parseInt(card.dataset.number, 10));
+    });
+  });
+
+  apiPost(BASE + '/api/issue_order', {
+    repo:    App.repo.full_name,
+    numbers,
+  }).fail(function () {
+    toast('Could not save card order.', 'warning');
+  });
+}
 
 function updateColCounts() {
   document.querySelectorAll('.kanban-col-body').forEach(function (body) {
