@@ -107,17 +107,26 @@ class GitHubClient {
         return $this->request('GET', "/repos/{$owner}/{$repo}/milestones?state={$state}&per_page=100");
     }
 
+    public function create_milestone(string $owner, string $repo, array $data): array {
+        return $this->request('POST', "/repos/{$owner}/{$repo}/milestones", $data);
+    }
+
     // -------------------------------------------------------------------------
     // Issues
     // -------------------------------------------------------------------------
 
-    public function get_issues(string $owner, string $repo, int $milestone): array {
+    /**
+     * @param int|string $milestone  Milestone number, or the string "none" for unassigned issues.
+     */
+    public function get_issues(string $owner, string $repo, int|string $milestone): array {
         $all  = [];
         $page = 1;
+        // Backlog shows only open issues; board shows all states.
+        $state = ($milestone === 'none') ? 'open' : 'all';
         while ($page <= 10) {
             $batch = $this->request(
                 'GET',
-                "/repos/{$owner}/{$repo}/issues?milestone={$milestone}&state=all&per_page=100&page={$page}"
+                "/repos/{$owner}/{$repo}/issues?milestone={$milestone}&state={$state}&per_page=100&page={$page}"
             );
             if (empty($batch)) {
                 break;

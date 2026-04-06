@@ -22,12 +22,50 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
 
   <style>
     /* -----------------------------------------------------------------------
-       Layout
+       GitHub design tokens
     ----------------------------------------------------------------------- */
+    :root {
+      --gh-canvas:          #ffffff;
+      --gh-canvas-subtle:   #f6f8fa;
+      --gh-canvas-inset:    #f0f6fc;
+      --gh-border:          #d0d7de;
+      --gh-border-muted:    #d8dee4;
+      --gh-fg:              #1f2328;
+      --gh-fg-muted:        #656d76;
+      --gh-fg-subtle:       #6e7781;
+      --gh-accent:          #0969da;
+      --gh-accent-hover:    #0550ae;
+      --gh-success:         #1a7f37;
+      --gh-attention:       #9a6700;
+      --gh-danger:          #d1242f;
+      --gh-done:            #8250df;
+      --gh-neutral:         #6e7781;
+      --gh-header-bg:       #24292f;
+      --gh-font:            -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+      --gh-font-mono:       ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      --gh-radius:          6px;
+      --gh-radius-sm:       4px;
+      --gh-shadow-sm:       0 1px 0 rgba(31,35,40,.04);
+      --gh-shadow-md:       0 3px 6px rgba(140,149,159,.15);
+    }
+
+    /* -----------------------------------------------------------------------
+       Base
+    ----------------------------------------------------------------------- */
+    *, *::before, *::after { box-sizing: border-box; }
+
     body {
-      background: #f6f8fa;
+      background: var(--gh-canvas-subtle);
+      color: var(--gh-fg);
+      font-family: var(--gh-font);
+      font-size: 14px;
+      line-height: 1.5;
       min-height: 100vh;
     }
+
+    a { color: var(--gh-accent); }
+    a:hover { color: var(--gh-accent-hover); }
+
     #app-loading {
       display: flex;
       align-items: center;
@@ -38,14 +76,66 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
     /* -----------------------------------------------------------------------
        Navbar
     ----------------------------------------------------------------------- */
-    .navbar-brand img {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
+    .navbar {
+      background: var(--gh-header-bg) !important;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+    .navbar-brand {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff !important;
     }
     .breadcrumb-nav .breadcrumb {
       margin-bottom: 0;
       background: transparent;
+    }
+    .breadcrumb-item { color: rgba(255,255,255,.7); font-size: 13px; }
+
+    /* -----------------------------------------------------------------------
+       Buttons — GitHub-style
+    ----------------------------------------------------------------------- */
+    .btn {
+      font-family: var(--gh-font);
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: var(--gh-radius);
+      transition: background-color .1s, border-color .1s;
+    }
+    .btn-sm { font-size: 12px; }
+
+    /* Primary (blue) */
+    .btn-gh-primary {
+      background-color: var(--gh-accent);
+      border: 1px solid rgba(31,35,40,.15);
+      color: #fff;
+    }
+    .btn-gh-primary:hover {
+      background-color: var(--gh-accent-hover);
+      color: #fff;
+    }
+
+    /* Default (white/gray) */
+    .btn-gh-default {
+      background-color: var(--gh-canvas);
+      border: 1px solid var(--gh-border);
+      color: var(--gh-fg);
+    }
+    .btn-gh-default:hover {
+      background-color: var(--gh-canvas-subtle);
+      border-color: var(--gh-border);
+      color: var(--gh-fg);
+    }
+
+    /* Danger */
+    .btn-gh-danger {
+      background-color: var(--gh-canvas);
+      border: 1px solid var(--gh-border);
+      color: var(--gh-danger);
+    }
+    .btn-gh-danger:hover {
+      background-color: var(--gh-danger);
+      border-color: var(--gh-danger);
+      color: #fff;
     }
 
     /* -----------------------------------------------------------------------
@@ -53,150 +143,246 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
     ----------------------------------------------------------------------- */
     .list-item-card {
       cursor: pointer;
-      transition: box-shadow .15s, transform .1s;
+      border: 1px solid var(--gh-border) !important;
+      border-radius: var(--gh-radius) !important;
+      background: var(--gh-canvas) !important;
+      box-shadow: var(--gh-shadow-sm);
+      transition: border-color .15s, box-shadow .15s;
     }
     .list-item-card:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,.12);
-      transform: translateY(-1px);
+      border-color: var(--gh-accent) !important;
+      box-shadow: var(--gh-shadow-md);
     }
+    .card-title { color: var(--gh-fg); font-weight: 600; font-size: 14px; }
+    .card-text  { color: var(--gh-fg-muted); font-size: 12px; }
 
     /* -----------------------------------------------------------------------
        Kanban board
     ----------------------------------------------------------------------- */
     #board {
       display: flex;
-      gap: 1rem;
+      gap: 12px;
       align-items: flex-start;
       overflow-x: auto;
       padding-bottom: 1rem;
       min-height: calc(100vh - 130px);
     }
     .kanban-col {
-      flex: 0 0 280px;
-      min-width: 280px;
+      flex: 0 0 272px;
+      min-width: 272px;
     }
     .kanban-col-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: .5rem .75rem;
-      border-radius: .5rem .5rem 0 0;
+      padding: 8px 12px;
+      background: var(--gh-canvas-subtle);
+      border: 1px solid var(--gh-border);
+      border-bottom: none;
+      border-radius: var(--gh-radius) var(--gh-radius) 0 0;
       font-weight: 600;
-      font-size: .85rem;
-      text-transform: uppercase;
-      letter-spacing: .04em;
+      font-size: 12px;
+      color: var(--gh-fg);
     }
-    .col-todo        .kanban-col-header { background: #e9ecef; color: #495057; }
-    .col-in-progress .kanban-col-header { background: #cfe2ff; color: #084298; }
-    .col-review      .kanban-col-header { background: #fff3cd; color: #856404; }
-    .col-done        .kanban-col-header { background: #d1e7dd; color: #0a3622; }
+    /* Colored top accent line per column */
+    .col-todo        .kanban-col-header { border-top: 3px solid var(--gh-neutral); }
+    .col-in-progress .kanban-col-header { border-top: 3px solid var(--gh-accent); }
+    .col-review      .kanban-col-header { border-top: 3px solid var(--gh-attention); }
+    .col-done        .kanban-col-header { border-top: 3px solid var(--gh-success); }
 
     .kanban-col-body {
       min-height: 80px;
-      padding: .5rem;
-      background: #fff;
-      border: 1px solid #dee2e6;
+      padding: 8px;
+      background: var(--gh-canvas-subtle);
+      border: 1px solid var(--gh-border);
       border-top: none;
-      border-radius: 0 0 .5rem .5rem;
+      border-radius: 0 0 var(--gh-radius) var(--gh-radius);
     }
     .kanban-col-body.drag-over {
-      background: #f0f7ff;
-      border-color: #0d6efd;
-      outline: 2px dashed #0d6efd;
+      background: var(--gh-canvas-inset);
+      border-color: var(--gh-accent);
+      outline: 2px dashed var(--gh-accent);
+    }
+
+    /* Column count badge */
+    .col-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      background: var(--gh-border-muted);
+      color: var(--gh-fg-muted);
+      font-size: 11px;
+      font-weight: 600;
     }
 
     /* Issue cards */
     .issue-card {
-      background: #fff;
-      border: 1px solid #dee2e6;
-      border-radius: .4rem;
-      padding: .6rem .75rem;
-      margin-bottom: .5rem;
+      background: var(--gh-canvas);
+      border: 1px solid var(--gh-border);
+      border-radius: var(--gh-radius);
+      padding: 8px 10px;
+      margin-bottom: 6px;
       cursor: grab;
       position: relative;
-      transition: box-shadow .12s;
+      transition: box-shadow .1s;
     }
     .issue-card:hover {
-      box-shadow: 0 2px 10px rgba(0,0,0,.1);
+      box-shadow: var(--gh-shadow-md);
+      border-color: var(--gh-border);
     }
     .issue-card.dragging {
-      opacity: .45;
+      opacity: .4;
       cursor: grabbing;
     }
     .issue-card.is-closed {
-      opacity: .6;
+      opacity: .55;
     }
     .issue-card-title {
-      font-size: .88rem;
+      font-size: 13px;
       font-weight: 500;
-      color: #24292f;
+      color: var(--gh-fg);
       line-height: 1.35;
-      margin-bottom: .35rem;
+      margin-bottom: 5px;
+      padding-right: 52px; /* room for action buttons */
     }
     .issue-card-title a {
-      color: inherit;
+      color: var(--gh-fg);
       text-decoration: none;
     }
-    .issue-card-title a:hover {
-      color: #0d6efd;
-    }
+    .issue-card-title a:hover { color: var(--gh-accent); }
     .issue-card-meta {
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-      gap: .25rem;
-      font-size: .76rem;
-      color: #6c757d;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--gh-fg-muted);
     }
     .issue-num {
-      font-family: monospace;
-      color: #6c757d;
+      font-family: var(--gh-font-mono);
+      font-size: 11px;
+      color: var(--gh-fg-muted);
     }
     .label-badge {
       display: inline-block;
-      padding: .15em .5em;
-      border-radius: 1em;
-      font-size: .72rem;
+      padding: 0 7px;
+      border-radius: 10px;
+      font-size: 11px;
       font-weight: 500;
-      line-height: 1.4;
+      line-height: 18px;
       white-space: nowrap;
     }
     .assignee-avatar {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
-      border: 1.5px solid #dee2e6;
+      border: 1px solid var(--gh-border);
       margin-left: 2px;
     }
 
     /* Card action buttons */
     .card-actions {
       position: absolute;
-      top: .4rem;
-      right: .4rem;
+      top: 6px;
+      right: 6px;
       display: none;
-      gap: .2rem;
+      gap: 2px;
     }
-    .issue-card:hover .card-actions {
-      display: flex;
-    }
+    .issue-card:hover .card-actions { display: flex; }
     .card-actions .btn {
-      padding: .1rem .3rem;
-      font-size: .7rem;
-      line-height: 1.2;
+      padding: 2px 5px;
+      font-size: 11px;
+      line-height: 18px;
+      background: var(--gh-canvas);
+      border: 1px solid var(--gh-border);
+      color: var(--gh-fg-muted);
+      border-radius: var(--gh-radius-sm);
+    }
+    .card-actions .btn:hover {
+      background: var(--gh-canvas-subtle);
+      color: var(--gh-fg);
+      border-color: var(--gh-border);
     }
 
-    /* Drop insertion indicator */
+    /* -----------------------------------------------------------------------
+       Backlog panel
+    ----------------------------------------------------------------------- */
+    #backlog-panel {
+      border: 1px solid var(--gh-border);
+      border-radius: var(--gh-radius);
+      margin-bottom: 12px;
+      background: var(--gh-canvas);
+    }
+    #backlog-toggle {
+      width: 100%;
+      text-align: left;
+      background: var(--gh-canvas-subtle);
+      border: none;
+      border-radius: var(--gh-radius);
+      padding: 8px 14px;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--gh-fg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #backlog-toggle:hover { background: var(--gh-border-muted); }
+    #backlog-body {
+      padding: 8px 12px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .backlog-card {
+      background: var(--gh-canvas-subtle);
+      border: 1px solid var(--gh-border);
+      border-radius: var(--gh-radius);
+      padding: 5px 8px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 360px;
+    }
+    .backlog-card-title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--gh-fg);
+    }
+    .backlog-card-title a { color: var(--gh-fg); text-decoration: none; }
+    .backlog-card-title a:hover { color: var(--gh-accent); }
+
+    /* -----------------------------------------------------------------------
+       Drop insertion indicator
+    ----------------------------------------------------------------------- */
     .drop-indicator {
-      height: 3px;
-      background: #0d6efd;
+      height: 2px;
+      background: var(--gh-accent);
       border-radius: 2px;
-      margin: 2px 0;
+      margin: 3px 0;
       pointer-events: none;
     }
 
     /* -----------------------------------------------------------------------
-       Misc
+       Milestone progress bar
+    ----------------------------------------------------------------------- */
+    .progress {
+      border-radius: var(--gh-radius-sm);
+      background: var(--gh-border-muted);
+      overflow: hidden;
+    }
+    .progress-bar { transition: width .3s ease; }
+
+    /* -----------------------------------------------------------------------
+       Misc / screens
     ----------------------------------------------------------------------- */
     .screen { display: none; }
     .screen.active { display: block; }
@@ -208,6 +394,63 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
       z-index: 9999;
       min-width: 280px;
       max-width: 420px;
+    }
+
+    /* GitHub-style toast */
+    .gh-toast {
+      background: var(--gh-header-bg);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--gh-radius);
+      font-size: 13px;
+      box-shadow: 0 8px 24px rgba(140,149,159,.2);
+    }
+    .gh-toast.error  { background: #a40e26; }
+    .gh-toast.warning { background: #7d4e00; }
+    .gh-toast .btn-close { filter: invert(1); }
+
+    /* GitHub-style form controls */
+    .form-control, .form-select {
+      border: 1px solid var(--gh-border);
+      border-radius: var(--gh-radius);
+      font-size: 14px;
+      color: var(--gh-fg);
+      background: var(--gh-canvas);
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--gh-accent);
+      box-shadow: 0 0 0 3px rgba(9,105,218,.1);
+    }
+
+    /* GitHub-style modals */
+    .modal-content {
+      border: 1px solid var(--gh-border);
+      border-radius: var(--gh-radius);
+      box-shadow: var(--gh-shadow-md);
+    }
+    .modal-header {
+      border-bottom: 1px solid var(--gh-border);
+      padding: 12px 16px;
+      background: var(--gh-canvas-subtle);
+      border-radius: var(--gh-radius) var(--gh-radius) 0 0;
+    }
+    .modal-title { font-size: 14px; font-weight: 600; color: var(--gh-fg); }
+    .modal-footer {
+      border-top: 1px solid var(--gh-border);
+      padding: 12px 16px;
+    }
+
+    /* Input group search */
+    .input-group-text {
+      background: var(--gh-canvas);
+      border-color: var(--gh-border);
+    }
+
+    /* Section heading */
+    .screen-heading {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gh-fg);
     }
   </style>
 </head>
@@ -229,11 +472,11 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
 <div id="screen-login" class="screen">
   <div class="d-flex align-items-center justify-content-center" style="min-height:100vh">
     <div class="text-center" style="max-width:380px;width:100%;padding:2rem">
-      <i class="fa-brands fa-github" style="font-size:3.5rem;color:#24292f;margin-bottom:1rem"></i>
-      <h2 class="fw-bold mb-1">GitHub Kanban</h2>
-      <p class="text-muted mb-4">Manage your GitHub Issues as a Kanban board, milestone by milestone.</p>
-      <a href="<?= $base ?>/auth/login" class="btn btn-dark btn-lg w-100">
-        <i class="fa-brands fa-github me-2"></i>Login with GitHub
+      <svg height="48" viewBox="0 0 16 16" width="48" style="color:#1f2328;margin-bottom:1.25rem;display:block;margin-left:auto;margin-right:auto" aria-hidden="true"><path fill="currentColor" d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+      <h2 style="font-size:24px;font-weight:600;color:#1f2328;margin-bottom:6px">GitHub Kanban</h2>
+      <p style="color:#656d76;font-size:14px;margin-bottom:24px">Manage GitHub Issues as a Kanban board, milestone by milestone.</p>
+      <a href="<?= $base ?>/auth/login" class="btn btn-gh-primary btn-lg w-100" style="font-size:16px;padding:10px 20px">
+        <svg height="16" viewBox="0 0 16 16" width="16" class="me-2" aria-hidden="true" style="vertical-align:text-bottom"><path fill="currentColor" d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>Sign in with GitHub
       </a>
     </div>
   </div>
@@ -245,12 +488,13 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
 <div id="screen-app" class="screen">
 
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-sm navbar-dark bg-dark px-3 py-2">
-    <a class="navbar-brand fw-bold" href="#" id="nav-home">
-      <i class="fa-brands fa-github me-1"></i>Kanban
+  <nav class="navbar navbar-expand-sm px-3 py-2">
+    <a class="navbar-brand" href="#" id="nav-home" style="display:flex;align-items:center;gap:8px">
+      <svg height="20" viewBox="0 0 16 16" width="20" aria-hidden="true" style="color:#fff"><path fill="currentColor" d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+      <span>Kanban</span>
     </a>
 
-    <div class="ms-3 breadcrumb-nav text-white-50 d-none d-sm-block" id="nav-breadcrumb">
+    <div class="ms-3 breadcrumb-nav d-none d-sm-block" id="nav-breadcrumb">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-0 small">
           <li class="breadcrumb-item active" id="bc-repo" style="display:none"></li>
@@ -260,11 +504,11 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
     </div>
 
     <div class="ms-auto d-flex align-items-center gap-2">
-      <span class="text-white-50 small d-none d-sm-inline" id="nav-user-login"></span>
-      <img src="" alt="" id="nav-avatar" class="rounded-circle d-none" style="width:28px;height:28px">
-      <a href="<?= $base ?>/auth/logout" class="btn btn-outline-secondary btn-sm">
+      <span style="color:rgba(255,255,255,.7);font-size:13px" class="d-none d-sm-inline" id="nav-user-login"></span>
+      <img src="" alt="" id="nav-avatar" class="rounded-circle d-none" style="width:20px;height:20px">
+      <a href="<?= $base ?>/auth/logout" class="btn btn-gh-default btn-sm" style="font-size:12px;padding:4px 10px">
         <i class="fa-solid fa-right-from-bracket"></i>
-        <span class="d-none d-sm-inline ms-1">Logout</span>
+        <span class="d-none d-sm-inline ms-1">Sign out</span>
       </a>
     </div>
   </nav>
@@ -274,10 +518,10 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
   <!-- Repository list -->
   <div id="sub-repos" class="sub-screen container-fluid py-4" style="display:none">
     <div class="d-flex align-items-center justify-content-between mb-3">
-      <h5 class="fw-semibold mb-0"><i class="fa-solid fa-code-branch me-2 text-muted"></i>Select a Repository</h5>
-      <div class="input-group" style="max-width:260px">
-        <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-        <input type="text" id="repo-search" class="form-control border-start-0" placeholder="Filter repos…">
+      <h5 class="screen-heading mb-0">Select a repository</h5>
+      <div class="input-group" style="max-width:240px">
+        <span class="input-group-text"><i class="fa-solid fa-magnifying-glass" style="color:var(--gh-fg-muted);font-size:12px"></i></span>
+        <input type="text" id="repo-search" class="form-control border-start-0" placeholder="Find a repository…" style="font-size:13px">
       </div>
     </div>
     <div id="repos-loading" class="text-center text-muted py-5">
@@ -288,17 +532,18 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
 
   <!-- Milestone list -->
   <div id="sub-milestones" class="sub-screen container-fluid py-4" style="display:none">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-      <div>
-        <button class="btn btn-sm btn-outline-secondary me-2" id="btn-back-repos">
-          <i class="fa-solid fa-arrow-left me-1"></i>Repos
-        </button>
-        <h5 class="fw-semibold mb-0 d-inline" id="milestone-repo-title"></h5>
-      </div>
+    <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+      <button class="btn btn-sm btn-gh-default" id="btn-back-repos">
+        <i class="fa-solid fa-arrow-left me-1"></i>Repositories
+      </button>
+      <h5 class="screen-heading mb-0 me-auto" id="milestone-repo-title"></h5>
       <div class="form-check form-switch mb-0">
         <input class="form-check-input" type="checkbox" id="milestone-show-closed">
-        <label class="form-check-label small text-muted" for="milestone-show-closed">Show closed</label>
+        <label class="form-check-label small" style="color:var(--gh-fg-muted);font-size:12px" for="milestone-show-closed">Show closed</label>
       </div>
+      <button class="btn btn-sm btn-gh-primary" id="btn-new-milestone">
+        <i class="fa-solid fa-plus me-1"></i>New milestone
+      </button>
     </div>
     <div id="milestones-loading" class="text-center text-muted py-5">
       <div class="spinner-border spinner-border-sm me-2"></div>Loading milestones…
@@ -310,16 +555,26 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
   <div id="sub-board" class="sub-screen" style="display:none">
     <div class="container-fluid py-3">
       <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
-        <button class="btn btn-sm btn-outline-secondary" id="btn-back-milestones">
+        <button class="btn btn-sm btn-gh-default" id="btn-back-milestones">
           <i class="fa-solid fa-arrow-left me-1"></i>Milestones
         </button>
-        <h5 class="fw-semibold mb-0 me-auto" id="board-title"></h5>
-        <button class="btn btn-sm btn-outline-primary" id="btn-refresh-board">
+        <h5 class="screen-heading mb-0 me-auto" id="board-title"></h5>
+        <button class="btn btn-sm btn-gh-default" id="btn-refresh-board">
           <i class="fa-solid fa-rotate-right me-1"></i>Refresh
         </button>
-        <button class="btn btn-sm btn-success" id="btn-ensure-labels">
-          <i class="fa-solid fa-tags me-1"></i>Ensure Labels
+        <button class="btn btn-sm btn-gh-default" id="btn-ensure-labels">
+          <i class="fa-solid fa-tags me-1"></i>Ensure labels
         </button>
+      </div>
+
+      <!-- Backlog panel -->
+      <div id="backlog-panel" style="display:none">
+        <button id="backlog-toggle" data-open="1">
+          <i class="fa-solid fa-inbox text-muted"></i>
+          <span id="backlog-title">Backlog</span>
+          <i class="fa-solid fa-chevron-down ms-auto" id="backlog-chevron"></i>
+        </button>
+        <div id="backlog-body"></div>
       </div>
 
       <div id="board-loading" class="text-center text-muted py-5">
@@ -329,29 +584,29 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
       <div id="board" style="display:none">
         <div class="kanban-col col-todo">
           <div class="kanban-col-header">
-            <span><i class="fa-regular fa-circle me-1"></i>Todo</span>
-            <span class="badge bg-secondary col-count" data-col="todo">0</span>
+            <span>Todo</span>
+            <span class="col-count-badge col-count" data-col="todo">0</span>
           </div>
           <div class="kanban-col-body" data-col="todo"></div>
         </div>
         <div class="kanban-col col-in-progress">
           <div class="kanban-col-header">
-            <span><i class="fa-regular fa-clock me-1"></i>In Progress</span>
-            <span class="badge bg-primary col-count" data-col="in-progress">0</span>
+            <span>In Progress</span>
+            <span class="col-count-badge col-count" data-col="in-progress">0</span>
           </div>
           <div class="kanban-col-body" data-col="in-progress"></div>
         </div>
         <div class="kanban-col col-review">
           <div class="kanban-col-header">
-            <span><i class="fa-solid fa-eye me-1"></i>Review</span>
-            <span class="badge bg-warning text-dark col-count" data-col="review">0</span>
+            <span>In Review</span>
+            <span class="col-count-badge col-count" data-col="review">0</span>
           </div>
           <div class="kanban-col-body" data-col="review"></div>
         </div>
         <div class="kanban-col col-done">
           <div class="kanban-col-header">
-            <span><i class="fa-solid fa-check me-1"></i>Done</span>
-            <span class="badge bg-success col-count" data-col="done">0</span>
+            <span>Done</span>
+            <span class="col-count-badge col-count" data-col="done">0</span>
           </div>
           <div class="kanban-col-body" data-col="done"></div>
         </div>
@@ -360,6 +615,55 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
   </div>
 
 </div><!-- #screen-app -->
+
+<!-- Create milestone modal -->
+<div class="modal fade" id="modal-create-milestone" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title"><i class="fa-solid fa-flag me-2"></i>New Milestone</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+          <input type="text" id="ms-title" class="form-control" placeholder="e.g. v1.0 Release">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Description</label>
+          <textarea id="ms-description" class="form-control" rows="2" placeholder="Optional"></textarea>
+        </div>
+        <div class="mb-0">
+          <label class="form-label fw-semibold">Due date</label>
+          <input type="date" id="ms-due-on" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm btn-gh-default" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-sm btn-gh-primary" id="btn-create-milestone-submit">
+          <i class="fa-solid fa-plus me-1"></i>Create milestone
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Move-to-milestone modal -->
+<div class="modal fade" id="modal-move-milestone" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title">Move to milestone</h6>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-2" id="modal-milestone-list">
+        <div class="text-center text-muted py-2">
+          <div class="spinner-border spinner-border-sm"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Floating toast container -->
 <div id="toast-container" class="alert-float" aria-live="polite"></div>
@@ -374,11 +678,13 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
    Application State
 ============================================================================= */
 const App = {
-  user:       null,
-  csrfToken:  null,
-  repo:       null,   // { full_name, name, owner }
-  milestone:  null,   // { number, title }
-  issues:     [],
+  user:             null,
+  csrfToken:        null,
+  repo:             null,       // { full_name, name, owner }
+  milestone:        null,       // { number, title }
+  repoMilestones:   [],         // all milestones for current repo (for move picker)
+  issues:           [],
+  movingIssueNumber: null,      // issue being moved in the modal
 };
 
 /* =============================================================================
@@ -388,11 +694,10 @@ const App = {
 /** Show a transient toast message */
 function toast(msg, type = 'success') {
   const id  = 'toast-' + Date.now();
-  const cls = type === 'error' ? 'alert-danger' : (type === 'warning' ? 'alert-warning' : 'alert-success');
   const el  = $(`
-    <div id="${id}" class="alert ${cls} alert-dismissible shadow-sm" role="alert">
+    <div id="${id}" class="alert gh-toast ${type === 'error' ? 'error' : type === 'warning' ? 'warning' : ''} alert-dismissible" role="alert" style="font-size:13px;padding:10px 14px">
       ${msg}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
     </div>
   `);
   $('#toast-container').append(el);
@@ -452,12 +757,70 @@ $(function () {
       $('#nav-user-login').text(me.login).removeClass('d-none');
       $('#app-loading').hide();
       showScreen('screen-app');
-      loadRepos();
+
+      // Restore view from current URL (handles page refresh / deep links)
+      const prefix = BASE + '/app';
+      const path   = window.location.pathname;
+      const rest   = path.startsWith(prefix) ? path.slice(prefix.length).replace(/^\/+/, '') : '';
+      const parts  = rest ? rest.split('/') : [];
+
+      if (parts.length >= 3 && /^\d+$/.test(parts[2])) {
+        // /app/owner/name/milestone-number → board
+        App.repo = { full_name: parts[0] + '/' + parts[1], owner: parts[0], name: parts[1] };
+        const msNum = parseInt(parts[2], 10);
+        apiGet(BASE + '/api/milestones', { repo: App.repo.full_name, state: 'all' })
+          .done(function (milestones) {
+            App.repoMilestones = milestones;
+            const ms = milestones.find(m => m.number === msNum)
+                    || { number: msNum, title: 'Milestone #' + msNum };
+            App.milestone = ms;
+            history.replaceState(
+              { view: 'board', repo: App.repo.full_name, milestone: ms.number, milestoneTitle: ms.title },
+              '', path
+            );
+            updateBreadcrumb(App.repo, ms);
+            loadBoard();
+          })
+          .fail(function () {
+            App.milestone = { number: msNum, title: '#' + msNum };
+            updateBreadcrumb(App.repo, App.milestone);
+            loadBoard();
+          });
+      } else if (parts.length >= 2 && parts[0] && parts[1]) {
+        // /app/owner/name → milestones
+        App.repo = { full_name: parts[0] + '/' + parts[1], owner: parts[0], name: parts[1] };
+        history.replaceState({ view: 'milestones', repo: App.repo.full_name }, '', path);
+        updateBreadcrumb(App.repo, null);
+        loadMilestones();
+      } else {
+        history.replaceState({ view: 'repos' }, '', BASE + '/app');
+        loadRepos();
+      }
     })
-    .fail(function (xhr) {
+    .fail(function () {
       $('#app-loading').hide();
       showScreen('screen-login');
     });
+});
+
+/* Browser back / forward */
+window.addEventListener('popstate', function (e) {
+  const s = e.state || {};
+  if (s.view === 'board') {
+    const [owner, name] = s.repo.split('/');
+    App.repo      = { full_name: s.repo, owner, name };
+    App.milestone = { number: s.milestone, title: s.milestoneTitle || ('#' + s.milestone) };
+    updateBreadcrumb(App.repo, App.milestone);
+    loadBoard();
+  } else if (s.view === 'milestones') {
+    const [owner, name] = s.repo.split('/');
+    App.repo = { full_name: s.repo, owner, name };
+    updateBreadcrumb(App.repo, null);
+    loadMilestones();
+  } else {
+    updateBreadcrumb(null, null);
+    loadRepos();
+  }
 });
 
 /* =============================================================================
@@ -501,12 +864,12 @@ function renderRepos(repos) {
     const $card = $(`
       <div class="col-sm-6 col-md-4 col-lg-3">
         <div class="card list-item-card h-100" data-full-name="${r.full_name}">
-          <div class="card-body">
-            <h6 class="card-title mb-1">
-              <i class="fa-solid ${icon} me-1 text-muted"></i>${escHtml(r.name)}
-            </h6>
-            <p class="card-text small text-muted mb-2">${escHtml(r.owner)}</p>
-            ${r.description ? '<p class="card-text small text-muted text-truncate">' + escHtml(r.description) + '</p>' : ''}
+          <div class="card-body" style="padding:14px 16px">
+            <div style="font-size:14px;font-weight:600;color:var(--gh-accent);margin-bottom:2px">
+              <i class="fa-solid ${icon} me-1" style="color:var(--gh-fg-muted);font-size:12px"></i>${escHtml(r.name)}
+            </div>
+            <div style="font-size:12px;color:var(--gh-fg-muted);margin-bottom:4px">${escHtml(r.owner)}</div>
+            ${r.description ? `<div style="font-size:12px;color:var(--gh-fg-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(r.description)}</div>` : ''}
           </div>
         </div>
       </div>
@@ -533,6 +896,11 @@ $('#repo-search').on('input', function () {
 
 function selectRepo(repo) {
   App.repo = repo;
+  history.pushState(
+    { view: 'milestones', repo: repo.full_name },
+    '',
+    BASE + '/app/' + repo.full_name
+  );
   updateBreadcrumb(repo, null);
   loadMilestones();
 }
@@ -548,6 +916,7 @@ function loadMilestones(showClosed = false) {
 
   apiGet(BASE + '/api/milestones', { repo: App.repo.full_name, state })
     .done(function (milestones) {
+      App.repoMilestones = milestones;
       renderMilestones(milestones);
       $('#milestones-loading').hide();
       $('#milestone-list').show();
@@ -564,50 +933,150 @@ function renderMilestones(milestones) {
   const $list = $('#milestone-list').empty();
 
   if (!milestones.length) {
-    $list.html('<p class="text-muted">No milestones found. ' +
-      '<a href="' + escHtml('https://github.com/' + App.repo.full_name + '/milestones/new') +
-      '" target="_blank">Create one on GitHub</a>.</p>');
+    $list.html('<div class="col-12"><p class="text-muted">No milestones found. ' +
+      'Use the <strong>New Milestone</strong> button to create one.</p></div>');
     return;
   }
 
   milestones.forEach(function (m) {
-    const total    = m.open_issues + m.closed_issues;
-    const progress = total > 0 ? Math.round((m.closed_issues / total) * 100) : 0;
-    const due      = m.due_on ? new Date(m.due_on).toLocaleDateString() : 'No due date';
+    const total      = m.open_issues + m.closed_issues;
+    const due        = m.due_on ? new Date(m.due_on).toLocaleDateString() : null;
+    const dueBadge   = due
+      ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--gh-fg-muted);margin-left:6px"><i class="fa-regular fa-calendar"></i>${escHtml(due)}</span>`
+      : '';
     const stateBadge = m.state === 'closed'
-      ? '<span class="badge bg-secondary ms-1">closed</span>'
+      ? '<span style="display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:500;background:#6e7781;color:#fff;margin-left:6px">closed</span>'
       : '';
 
-    const $card = $(`
+    const $col = $(`
       <div class="col-sm-6 col-md-4 col-lg-3">
         <div class="card list-item-card h-100" data-milestone="${m.number}">
-          <div class="card-body">
-            <h6 class="card-title mb-1">
-              <i class="fa-solid fa-flag me-1 text-muted"></i>${escHtml(m.title)}${stateBadge}
-            </h6>
-            ${m.description ? '<p class="card-text small text-muted mb-2 text-truncate">' + escHtml(m.description) + '</p>' : ''}
-            <div class="progress mb-1" style="height:6px">
-              <div class="progress-bar bg-success" style="width:${progress}%"></div>
+          <div class="card-body d-flex flex-column">
+            <div style="font-size:14px;font-weight:600;color:var(--gh-fg);margin-bottom:4px;display:flex;align-items:baseline;flex-wrap:wrap;gap:2px">
+              ${escHtml(m.title)}${stateBadge}
             </div>
-            <p class="card-text small text-muted">
-              ${m.closed_issues}/${total} issues &bull; ${escHtml(due)}
-            </p>
+            ${m.description ? `<p class="card-text mb-2 text-truncate" style="font-size:12px">${escHtml(m.description)}</p>` : '<div class="mb-2"></div>'}
+            <div class="mt-auto">
+              <!-- Progress bar: starts as simple open/closed, updated by stats -->
+              <div class="progress mb-1" style="height:6px" data-ms="${m.number}" title="Loading…">
+                <div class="progress-bar" style="width:${total > 0 ? Math.round((m.open_issues / total) * 100) : 100}%;background:#d0d7de"></div>
+                <div class="progress-bar" style="width:${total > 0 ? Math.round((m.closed_issues / total) * 100) : 0}%;background:#1a7f37"></div>
+              </div>
+              <!-- Stats text: updated once stats load -->
+              <p class="mb-0 ms-stats" style="font-size:11px;color:var(--gh-fg-muted)" data-ms="${m.number}">
+                <span class="spinner-border spinner-border-sm me-1" style="width:.65rem;height:.65rem;border-width:1px"></span>
+                ${total} issue${total !== 1 ? 's' : ''} total${due ? ` &bull; due ${escHtml(due)}` : ''}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     `);
-    $card.find('.card').on('click', function () {
-      selectMilestone(m);
-    });
-    $list.append($card);
+
+    // Open the board on click (but not on badge/button clicks)
+    $col.find('.card').on('click', function () { selectMilestone(m); });
+    $list.append($col);
+
+    // Fetch detailed stats asynchronously — update bar and text when ready
+    loadMilestoneStats(m.number, total);
   });
+}
+
+function loadMilestoneStats(milestoneNumber, total) {
+  apiGet(BASE + '/api/milestone_stats', { repo: App.repo.full_name, milestone: milestoneNumber })
+    .done(function (s) {
+      const t = s.total || 0;
+      if (t === 0) {
+        $(`.ms-stats[data-ms="${milestoneNumber}"]`).text('No issues yet');
+        return;
+      }
+      const pct = v => t > 0 ? (v / t * 100).toFixed(1) : 0;
+
+      // Segmented bar: todo (gray) / in-progress (blue) / review (orange) / done (green)
+      const $bar = $(`.progress[data-ms="${milestoneNumber}"]`);
+      $bar.attr('title',
+        `Todo: ${s.todo} · In Progress: ${s.in_progress} · Review: ${s.review} · Done: ${s.done}`
+      ).html(`
+        <div class="progress-bar" style="width:${pct(s.todo)}%;background:#d0d7de"       title="Todo: ${s.todo}"></div>
+        <div class="progress-bar" style="width:${pct(s.in_progress)}%;background:#0969da" title="In Progress: ${s.in_progress}"></div>
+        <div class="progress-bar" style="width:${pct(s.review)}%;background:#bf8700"     title="Review: ${s.review}"></div>
+        <div class="progress-bar" style="width:${pct(s.done)}%;background:#1a7f37"       title="Done: ${s.done}"></div>
+      `);
+
+      const doneOf = `${s.done}/${t} done`;
+      const parts  = [];
+      if (s.in_progress) parts.push(`${s.in_progress} in progress`);
+      if (s.review)      parts.push(`${s.review} in review`);
+      if (s.todo)        parts.push(`${s.todo} todo`);
+
+      $(`.ms-stats[data-ms="${milestoneNumber}"]`).html(
+        `<strong>${doneOf}</strong>${parts.length ? ' &bull; ' + parts.join(' &bull; ') : ''}`
+      );
+    })
+    .fail(function () {
+      // On failure just leave the basic bar in place, remove the spinner
+      $(`.ms-stats[data-ms="${milestoneNumber}"] .spinner-border`).remove();
+    });
 }
 
 $('#milestone-show-closed').on('change', function () {
   loadMilestones($(this).is(':checked'));
 });
 
-$('#btn-back-repos').on('click', function () { loadRepos(); });
+$('#btn-back-repos').on('click', function () {
+  history.pushState({ view: 'repos' }, '', BASE + '/app');
+  loadRepos();
+});
+
+/* -----------------------------------------------------------------------
+   Create milestone
+----------------------------------------------------------------------- */
+
+const createMilestoneModal = new bootstrap.Modal(document.getElementById('modal-create-milestone'));
+
+$('#btn-new-milestone').on('click', function () {
+  $('#ms-title').val('');
+  $('#ms-description').val('');
+  $('#ms-due-on').val('');
+  createMilestoneModal.show();
+  setTimeout(() => $('#ms-title').trigger('focus'), 300);
+});
+
+$('#btn-create-milestone-submit').on('click', function () {
+  const title = $('#ms-title').val().trim();
+  if (!title) {
+    $('#ms-title').addClass('is-invalid').trigger('focus');
+    return;
+  }
+  $('#ms-title').removeClass('is-invalid');
+
+  const $btn = $(this).prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i>Creating…');
+
+  apiPost(BASE + '/api/milestone_create', {
+    repo:        App.repo.full_name,
+    title,
+    description: $('#ms-description').val().trim(),
+    due_on:      $('#ms-due-on').val(),
+  })
+  .done(function (res) {
+    createMilestoneModal.hide();
+    toast(`Milestone "${res.milestone.title}" created.`);
+    loadMilestones($('#milestone-show-closed').is(':checked'));
+  })
+  .fail(function (xhr) {
+    toast('Failed: ' + (xhr.responseJSON?.error ?? 'Unknown'), 'error');
+  })
+  .always(function () {
+    $btn.prop('disabled', false).html('<i class="fa-solid fa-plus me-1"></i>Create');
+  });
+});
+
+// Allow Enter key to submit the modal form
+$('#modal-create-milestone').on('keydown', function (e) {
+  if (e.key === 'Enter' && !$(e.target).is('textarea')) {
+    $('#btn-create-milestone-submit').trigger('click');
+  }
+});
 
 /* =============================================================================
    Kanban board
@@ -615,6 +1084,11 @@ $('#btn-back-repos').on('click', function () { loadRepos(); });
 
 function selectMilestone(milestone) {
   App.milestone = milestone;
+  history.pushState(
+    { view: 'board', repo: App.repo.full_name, milestone: milestone.number, milestoneTitle: milestone.title },
+    '',
+    BASE + '/app/' + App.repo.full_name + '/' + milestone.number
+  );
   updateBreadcrumb(App.repo, milestone);
   loadBoard();
 }
@@ -624,14 +1098,26 @@ function loadBoard() {
   $('#board-title').text(App.repo.full_name + ' / ' + App.milestone.title);
   $('#board-loading').show();
   $('#board').hide();
+  $('#backlog-panel').hide();
 
-  apiGet(BASE + '/api/issues', { repo: App.repo.full_name, milestone: App.milestone.number })
-    .done(function (issues) {
+  // If milestones weren't loaded yet (deep-linked), fetch them for the move modal
+  if (!App.repoMilestones.length) {
+    apiGet(BASE + '/api/milestones', { repo: App.repo.full_name, state: 'open' })
+      .done(ms => { App.repoMilestones = ms; });
+  }
+
+  const boardReq   = apiGet(BASE + '/api/issues', { repo: App.repo.full_name, milestone: App.milestone.number });
+  const backlogReq = apiGet(BASE + '/api/issues', { repo: App.repo.full_name, milestone: 'none' });
+
+  $.when(boardReq, backlogReq)
+    .done(function (boardData, backlogData) {
+      const issues  = boardData[0];
+      const backlog = backlogData[0];
       App.issues = issues;
       renderBoard(issues);
+      renderBacklog(backlog);
       $('#board-loading').hide();
       $('#board').show();
-      initDragDrop();
     })
     .fail(function (xhr) {
       $('#board-loading').html(
@@ -662,6 +1148,74 @@ function renderBoard(issues) {
   });
 }
 
+/* -----------------------------------------------------------------------
+   Backlog panel
+----------------------------------------------------------------------- */
+
+function renderBacklog(issues) {
+  const $body = $('#backlog-body').empty();
+
+  if (!issues.length) {
+    $('#backlog-panel').hide();
+    return;
+  }
+
+  $('#backlog-title').text(`Backlog (${issues.length} unassigned issue${issues.length !== 1 ? 's' : ''})`);
+  $('#backlog-panel').show();
+
+  issues.forEach(function (issue) {
+    const $card = $(`
+      <div class="backlog-card" data-number="${issue.number}">
+        <span class="issue-num">#${issue.number}</span>
+        <span class="backlog-card-title">
+          <a href="${escHtml(issue.html_url)}" target="_blank">${escHtml(issue.title)}</a>
+        </span>
+        <button class="btn btn-sm btn-gh-primary btn-add-to-board"
+                style="font-size:11px;padding:2px 8px;white-space:nowrap"
+                title="Add to ${escHtml(App.milestone.title)}"
+                data-number="${issue.number}">
+          <i class="fa-solid fa-plus me-1"></i>Add to board
+        </button>
+      </div>
+    `);
+    $body.append($card);
+  });
+}
+
+// Toggle backlog collapse
+$('#backlog-toggle').on('click', function () {
+  const open = $(this).data('open');
+  $('#backlog-body').toggle(!open);
+  $(this).data('open', open ? 0 : 1);
+  $('#backlog-chevron').toggleClass('fa-chevron-down fa-chevron-right');
+});
+
+// "Add to board" — assign backlog issue to current milestone → top of TODO
+$(document).on('click', '.btn-add-to-board', function (e) {
+  e.stopPropagation();
+  const $btn   = $(this).prop('disabled', true);
+  const number = parseInt($(this).data('number'), 10);
+
+  apiPost(BASE + '/api/issue_update', {
+    repo:         App.repo.full_name,
+    issue_number: number,
+    action:       'assign_milestone',
+    milestone:    App.milestone.number,
+  })
+  .done(function () {
+    toast(`Issue #${number} added to ${App.milestone.title}.`);
+    loadBoard(); // reload to reflect new card at top of TODO
+  })
+  .fail(function (xhr) {
+    $btn.prop('disabled', false);
+    toast('Failed: ' + (xhr.responseJSON?.error ?? 'Unknown'), 'error');
+  });
+});
+
+/* -----------------------------------------------------------------------
+   Board card rendering
+----------------------------------------------------------------------- */
+
 function renderCard(issue) {
   const labels = issue.labels
     .filter(l => !l.name.startsWith('status:'))
@@ -677,8 +1231,8 @@ function renderCard(issue) {
 
   const closedClass = issue.state === 'closed' ? ' is-closed' : '';
   const closeBtn = issue.state === 'open'
-    ? `<button class="btn btn-outline-secondary btn-sm" data-action="close" title="Close issue"><i class="fa-solid fa-xmark"></i></button>`
-    : `<button class="btn btn-outline-success btn-sm"    data-action="reopen" title="Reopen issue"><i class="fa-solid fa-rotate-left"></i></button>`;
+    ? `<button class="btn" data-action="close"  title="Close issue"><i class="fa-solid fa-xmark"></i></button>`
+    : `<button class="btn" data-action="reopen" title="Reopen issue" style="color:var(--gh-success)"><i class="fa-solid fa-rotate-left"></i></button>`;
 
   return $(`
     <div class="issue-card${closedClass}"
@@ -687,6 +1241,10 @@ function renderCard(issue) {
          data-status="${escHtml(issue.status)}">
       <div class="card-actions">
         ${closeBtn}
+        <button class="btn" data-action="move_milestone"
+                title="Move to another milestone"><i class="fa-solid fa-right-left"></i></button>
+        <button class="btn" data-action="remove_milestone"
+                title="Send back to backlog"><i class="fa-solid fa-inbox"></i></button>
       </div>
       <div class="issue-card-title">
         <a href="${escHtml(issue.html_url)}" target="_blank" title="Open on GitHub">${escHtml(issue.title)}</a>
@@ -708,28 +1266,94 @@ $(document).on('click', '.card-actions button', function (e) {
   const number = parseInt($card.data('number'), 10);
   const action = $(this).data('action');
 
+  if (action === 'move_milestone') {
+    openMoveMilestoneModal(number);
+    return;
+  }
+
+  if (action === 'remove_milestone') {
+    if (!confirm(`Remove #${number} from "${App.milestone.title}" and send to backlog?`)) return;
+    apiPost(BASE + '/api/issue_update', {
+      repo: App.repo.full_name, issue_number: number, action: 'remove_milestone',
+    })
+    .done(function () {
+      toast(`Issue #${number} sent to backlog.`);
+      loadBoard();
+    })
+    .fail(function (xhr) {
+      toast('Failed: ' + (xhr.responseJSON?.error ?? 'Unknown'), 'error');
+    });
+    return;
+  }
+
+  // close / reopen
   apiPost(BASE + '/api/issue_update', {
-    repo:         App.repo.full_name,
-    issue_number: number,
-    action,
+    repo: App.repo.full_name, issue_number: number, action,
   })
   .done(function (res) {
-    // Update local state
     const idx = App.issues.findIndex(i => i.number === number);
     if (idx !== -1) { App.issues[idx].state = res.issue.state; }
     toast(action === 'close' ? `Issue #${number} closed.` : `Issue #${number} reopened.`);
-    // Re-render the single card in place
     $card.toggleClass('is-closed', res.issue.state === 'closed');
-    $card.find('.card-actions').html(
+    $card.find('[data-action=close],[data-action=reopen]').replaceWith(
       res.issue.state === 'open'
-        ? `<button class="btn btn-outline-secondary btn-sm" data-action="close" title="Close issue"><i class="fa-solid fa-xmark"></i></button>`
-        : `<button class="btn btn-outline-success btn-sm"    data-action="reopen" title="Reopen issue"><i class="fa-solid fa-rotate-left"></i></button>`
+        ? `<button class="btn" data-action="close"  title="Close issue"><i class="fa-solid fa-xmark"></i></button>`
+        : `<button class="btn" data-action="reopen" title="Reopen issue" style="color:var(--gh-success)"><i class="fa-solid fa-rotate-left"></i></button>`
     );
   })
   .fail(function (xhr) {
     toast('Error: ' + (xhr.responseJSON?.error ?? 'Unknown'), 'error');
   });
 });
+
+/* -----------------------------------------------------------------------
+   Move-to-milestone modal
+----------------------------------------------------------------------- */
+
+const moveMilestoneModal = new bootstrap.Modal(document.getElementById('modal-move-milestone'));
+
+function openMoveMilestoneModal(issueNumber) {
+  App.movingIssueNumber = issueNumber;
+  const $list = $('#modal-milestone-list').empty();
+
+  const others = App.repoMilestones.filter(m => m.number !== App.milestone.number);
+  if (!others.length) {
+    $list.html('<p class="text-muted small p-2 mb-0">No other open milestones found.</p>');
+    moveMilestoneModal.show();
+    return;
+  }
+
+  others.forEach(function (m) {
+    const $btn = $(`
+      <button class="btn btn-gh-default btn-sm w-100 text-start mb-1"
+              style="font-size:13px"
+              data-milestone="${m.number}">
+        <i class="fa-solid fa-flag me-1" style="color:var(--gh-fg-muted)"></i>${escHtml(m.title)}
+      </button>
+    `);
+    $btn.on('click', function () {
+      moveMilestoneModal.hide();
+      const target = parseInt($(this).data('milestone'), 10);
+      apiPost(BASE + '/api/issue_update', {
+        repo:         App.repo.full_name,
+        issue_number: App.movingIssueNumber,
+        action:       'move_milestone',
+        milestone:    target,
+      })
+      .done(function (res) {
+        const targetTitle = others.find(m => m.number === target)?.title ?? `#${target}`;
+        toast(`Issue #${App.movingIssueNumber} moved to "${targetTitle}".`);
+        loadBoard();
+      })
+      .fail(function (xhr) {
+        toast('Failed: ' + (xhr.responseJSON?.error ?? 'Unknown'), 'error');
+      });
+    });
+    $list.append($btn);
+  });
+
+  moveMilestoneModal.show();
+}
 
 /* =============================================================================
    Drag and Drop
@@ -812,8 +1436,7 @@ $(document).on('drop', '.kanban-col-body', function (e) {
   $card.data('status', newCol);
   updateColCounts();
 
-  // Always save the new order for every column the drop affected
-  const saveOrder = () => saveColumnOrder(newCol, prevCol !== newCol ? prevCol : null);
+  const saveOrder = () => saveColumnOrder();
 
   if (newCol === prevCol) {
     // Same-column reorder — only save positions
@@ -848,8 +1471,7 @@ $(document).on('drop', '.kanban-col-body', function (e) {
  * it via /api/issue_order. Optionally pass two column IDs when a card moved
  * between columns (both need their order saved).
  */
-function saveColumnOrder(col1, col2 = null) {
-  // Build the full ordered list across all columns so positions are global
+function saveColumnOrder() {
   const numbers = [];
   document.querySelectorAll('.kanban-col-body').forEach(body => {
     body.querySelectorAll('.issue-card').forEach(card => {
@@ -858,7 +1480,8 @@ function saveColumnOrder(col1, col2 = null) {
   });
 
   apiPost(BASE + '/api/issue_order', {
-    repo:    App.repo.full_name,
+    repo:      App.repo.full_name,
+    milestone: App.milestone.number,
     numbers,
   }).fail(function () {
     toast('Could not save card order.', 'warning');
@@ -881,16 +1504,23 @@ function colLabel(col) {
    Toolbar buttons
 ============================================================================= */
 
-$('#nav-home').on('click', function (e) { e.preventDefault(); loadRepos(); });
-$('#btn-back-milestones').on('click', function () { loadMilestones(); });
+$('#nav-home').on('click', function (e) {
+  e.preventDefault();
+  history.pushState({ view: 'repos' }, '', BASE + '/app');
+  loadRepos();
+});
+$('#btn-back-milestones').on('click', function () {
+  history.pushState({ view: 'milestones', repo: App.repo.full_name }, '', BASE + '/app/' + App.repo.full_name);
+  loadMilestones();
+});
 $('#btn-refresh-board').on('click', function () { loadBoard(); });
 
 $('#btn-ensure-labels').on('click', function () {
   const STATUS_LABELS = [
-    { name: 'status:todo',        color: 'e9ecef' },
-    { name: 'status:in-progress', color: 'cfe2ff' },
-    { name: 'status:review',      color: 'fff3cd' },
-    { name: 'status:done',        color: 'd1e7dd' },
+    { name: 'status:todo',        color: 'd0d7de' },
+    { name: 'status:in-progress', color: 'ddf4ff' },
+    { name: 'status:review',      color: 'fff8c5' },
+    { name: 'status:done',        color: 'dafbe1' },
   ];
 
   let pending = STATUS_LABELS.length;

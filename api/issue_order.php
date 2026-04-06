@@ -2,15 +2,11 @@
 /**
  * POST /api/issue_order
  *
- * Saves the display order for every issue currently visible on the board.
- * The frontend sends the full ordered list of issue numbers as they appear
- * in the DOM top-to-bottom across all columns.
+ * Saves the display order for every issue visible on a milestone's board.
  *
- * Body: { "repo": "owner/name", "numbers": [42, 7, 15, 3, ...] }
+ * Body: { "repo": "owner/name", "milestone": 3, "numbers": [42, 7, 15, 3, ...] }
  *
- * Positions are stored as integers 0, 1, 2 … so future inserts can use
- * fractional values to slot a card between two existing ones without
- * rewriting the whole column.
+ * Positions are stored as integers 0, 1, 2 … scoped to (repo, milestone_number).
  */
 
 require_once __DIR__ . '/../lib/bootstrap.php';
@@ -29,17 +25,19 @@ if (!is_array($body)) {
     json_error('Invalid JSON body.');
 }
 
-$repo    = $body['repo']    ?? '';
-$numbers = $body['numbers'] ?? [];
+$repo      = $body['repo']      ?? '';
+$milestone = $body['milestone'] ?? null;
+$numbers   = $body['numbers']   ?? [];
 
 if (!preg_match('#^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$#', $repo)) {
     json_error('Invalid repo.');
 }
+if (!is_int($milestone) || $milestone < 1) {
+    json_error('milestone must be a positive integer.');
+}
 if (!is_array($numbers) || empty($numbers)) {
     json_error('numbers must be a non-empty array.');
 }
-
-// Validate every element is a positive integer
 foreach ($numbers as $n) {
     if (!is_int($n) || $n < 1) {
         json_error('Each number must be a positive integer.');
@@ -47,17 +45,15 @@ foreach ($numbers as $n) {
 }
 
 $db = get_db();
-
-// Upsert all positions in a single transaction
 $db->beginTransaction();
 try {
     $stmt = $db->prepare(
-        'INSERT INTO issue_positions (repo, issue_number, position)
-         VALUES (?, ?, ?)
+        'INSERT INTO issue_positions (repo, milestone_number, issue_number, position)
+         VALUES (?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE position = VALUES(position)'
     );
     foreach ($numbers as $position => $issue_number) {
-        $stmt->execute([$repo, $issue_number, $position]);
+        $stmt->execute([$repo, $milestone, $issue_number, $position]);
     }
     $db->commit();
 } catch (Throwable $e) {
