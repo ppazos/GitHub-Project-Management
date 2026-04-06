@@ -1,0 +1,20 @@
+Options -Indexes
+RewriteEngine On
+
+# Deny direct access to lib/ and .env
+RewriteRule ^lib/ - [F,L]
+RewriteRule ^\.env$ - [F,L]
+
+# Route root to app
+RewriteRule ^$ public/index.php [L]
+RewriteRule ^app(/.*)?$ public/index.php [L]
+
+# Route auth and api through their own PHP files
+RewriteRule ^auth/login$ auth/login.php [L]
+RewriteRule ^auth/callback$ auth/callback.php [L]
+RewriteRule ^auth/logout$ auth/logout.php [L]
+RewriteRule ^api/me$ api/me.php [L]
+RewriteRule ^api/repos$ api/repos.php [L]
+RewriteRule ^api/milestones$ api/milestones.php [L]
+RewriteRule ^api/issues$ api/issues.php [L]
+RewriteRule ^api/issue_update$ api/issue_update.php [L]
