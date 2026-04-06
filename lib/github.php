@@ -116,6 +116,25 @@ class GitHubClient {
     // -------------------------------------------------------------------------
 
     /**
+     * Search open issues with no milestone using GitHub's Search API.
+     * Returns the raw search response: { total_count, items[] }.
+     */
+    public function search_backlog(string $owner, string $repo, string $q = '', int $page = 1, int $per_page = 25): array {
+        $base = "repo:{$owner}/{$repo} no:milestone state:open is:issue";
+        if ($q !== '') {
+            $base .= ' ' . $q;
+        }
+        $qs = http_build_query([
+            'q'        => $base,
+            'per_page' => $per_page,
+            'page'     => $page,
+            'sort'     => 'updated',
+            'order'    => 'desc',
+        ]);
+        return $this->request('GET', "/search/issues?{$qs}");
+    }
+
+    /**
      * @param int|string $milestone  Milestone number, or the string "none" for unassigned issues.
      */
     public function get_issues(string $owner, string $repo, int|string $milestone): array {

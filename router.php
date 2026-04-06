@@ -27,6 +27,7 @@ $routes = [
     '/api/issue_order'      => 'api/issue_order.php',
     '/api/milestone_create' => 'api/milestone_create.php',
     '/api/milestone_stats'  => 'api/milestone_stats.php',
+    '/api/backlog'          => 'api/backlog.php',
 ];
 
 // Deny direct access to lib/ and .env (mirrors .htaccess rules)

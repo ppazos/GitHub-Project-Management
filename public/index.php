@@ -309,56 +309,42 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
     }
 
     /* -----------------------------------------------------------------------
-       Backlog panel
+       Backlog screen
     ----------------------------------------------------------------------- */
-    #backlog-panel {
-      border: 1px solid var(--gh-border);
-      border-radius: var(--gh-radius);
-      margin-bottom: 12px;
-      background: var(--gh-canvas);
-    }
-    #backlog-toggle {
-      width: 100%;
-      text-align: left;
-      background: var(--gh-canvas-subtle);
-      border: none;
-      border-radius: var(--gh-radius);
-      padding: 8px 14px;
-      font-weight: 600;
-      font-size: 12px;
-      color: var(--gh-fg);
-      cursor: pointer;
+    .backlog-issue-row {
       display: flex;
-      align-items: center;
-      gap: 6px;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--gh-border);
+      background: var(--gh-canvas);
+      font-size: 13px;
     }
-    #backlog-toggle:hover { background: var(--gh-border-muted); }
-    #backlog-body {
-      padding: 8px 12px 12px;
+    .backlog-issue-row:last-child { border-bottom: none; }
+    .backlog-issue-row:hover { background: var(--gh-canvas-subtle); }
+    .backlog-issue-icon {
+      flex-shrink: 0;
+      margin-top: 1px;
+      color: var(--gh-success);
+    }
+    .backlog-issue-body { flex: 1; min-width: 0; }
+    .backlog-issue-title {
+      color: var(--gh-fg);
+      font-weight: 500;
+      text-decoration: none;
+      word-break: break-word;
+    }
+    .backlog-issue-title:hover { color: var(--gh-accent); }
+    .backlog-issue-meta {
+      font-size: 11px;
+      color: var(--gh-fg-muted);
+      margin-top: 3px;
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-    }
-    .backlog-card {
-      background: var(--gh-canvas-subtle);
-      border: 1px solid var(--gh-border);
-      border-radius: var(--gh-radius);
-      padding: 5px 8px;
-      font-size: 12px;
-      display: flex;
       align-items: center;
-      gap: 6px;
-      max-width: 360px;
+      gap: 4px;
     }
-    .backlog-card-title {
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: var(--gh-fg);
-    }
-    .backlog-card-title a { color: var(--gh-fg); text-decoration: none; }
-    .backlog-card-title a:hover { color: var(--gh-accent); }
+    .backlog-issue-actions { flex-shrink: 0; }
 
     /* -----------------------------------------------------------------------
        Drop insertion indicator
@@ -541,6 +527,9 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
         <input class="form-check-input" type="checkbox" id="milestone-show-closed">
         <label class="form-check-label small" style="color:var(--gh-fg-muted);font-size:12px" for="milestone-show-closed">Show closed</label>
       </div>
+      <button class="btn btn-sm btn-gh-default" id="btn-go-backlog">
+        <i class="fa-solid fa-inbox me-1"></i>Backlog
+      </button>
       <button class="btn btn-sm btn-gh-primary" id="btn-new-milestone">
         <i class="fa-solid fa-plus me-1"></i>New milestone
       </button>
@@ -567,14 +556,11 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
         </button>
       </div>
 
-      <!-- Backlog panel -->
-      <div id="backlog-panel" style="display:none">
-        <button id="backlog-toggle" data-open="1">
-          <i class="fa-solid fa-inbox text-muted"></i>
-          <span id="backlog-title">Backlog</span>
-          <i class="fa-solid fa-chevron-down ms-auto" id="backlog-chevron"></i>
-        </button>
-        <div id="backlog-body"></div>
+      <!-- Backlog indicator -->
+      <div id="backlog-indicator" style="display:none;margin-bottom:10px;font-size:12px;color:var(--gh-fg-muted)">
+        <a href="#" id="btn-go-backlog-from-board" style="color:var(--gh-accent);text-decoration:none">
+          <i class="fa-solid fa-inbox me-1"></i><span id="backlog-count-label">Backlog</span>
+        </a>
       </div>
 
       <div id="board-loading" class="text-center text-muted py-5">
@@ -611,6 +597,44 @@ $base = APP_BASE; // e.g. "/GitHub-Project-Management"
           <div class="kanban-col-body" data-col="done"></div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Backlog / staging area -->
+  <div id="sub-backlog" class="sub-screen container-fluid py-4" style="display:none">
+    <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+      <button class="btn btn-sm btn-gh-default" id="btn-back-milestones-from-backlog">
+        <i class="fa-solid fa-arrow-left me-1"></i>Milestones
+      </button>
+      <h5 class="screen-heading mb-0 me-auto">Backlog — <span id="backlog-repo-title" style="font-weight:400;color:var(--gh-fg-muted)"></span></h5>
+      <button class="btn btn-sm btn-gh-primary" id="btn-new-milestone-from-backlog">
+        <i class="fa-solid fa-plus me-1"></i>New milestone
+      </button>
+    </div>
+
+    <div class="mb-3" style="max-width:420px">
+      <div class="input-group">
+        <span class="input-group-text"><i class="fa-solid fa-magnifying-glass" style="color:var(--gh-fg-muted);font-size:12px"></i></span>
+        <input type="text" id="backlog-search-input" class="form-control border-start-0"
+               placeholder="Search unassigned issues…" style="font-size:13px" autocomplete="off">
+        <button class="btn btn-gh-default" id="backlog-search-clear" style="display:none;font-size:12px;padding:0 10px" title="Clear search">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="backlog-screen-loading" class="text-center py-5" style="color:var(--gh-fg-muted);display:none">
+      <div class="spinner-border spinner-border-sm me-2"></div>Loading…
+    </div>
+
+    <div id="backlog-screen-results">
+      <div style="font-size:12px;color:var(--gh-fg-muted);margin-bottom:8px" id="backlog-count-text"></div>
+      <div id="backlog-issue-list" style="border:1px solid var(--gh-border);border-radius:var(--gh-radius);overflow:hidden;background:var(--gh-canvas)">
+        <div class="text-center py-5" style="color:var(--gh-fg-muted)">
+          <div class="spinner-border spinner-border-sm"></div>
+        </div>
+      </div>
+      <div id="backlog-pagination" class="d-flex align-items-center justify-content-between mt-3" style="font-size:13px"></div>
     </div>
   </div>
 
@@ -764,7 +788,15 @@ $(function () {
       const rest   = path.startsWith(prefix) ? path.slice(prefix.length).replace(/^\/+/, '') : '';
       const parts  = rest ? rest.split('/') : [];
 
-      if (parts.length >= 3 && /^\d+$/.test(parts[2])) {
+      if (parts.length >= 3 && parts[2] === 'backlog') {
+        // /app/owner/name/backlog → backlog screen
+        App.repo = { full_name: parts[0] + '/' + parts[1], owner: parts[0], name: parts[1] };
+        history.replaceState({ view: 'backlog', repo: App.repo.full_name }, '', path);
+        updateBreadcrumb(App.repo, null);
+        apiGet(BASE + '/api/milestones', { repo: App.repo.full_name, state: 'open' })
+          .done(ms => { App.repoMilestones = ms; });
+        loadBacklogScreen();
+      } else if (parts.length >= 3 && /^\d+$/.test(parts[2])) {
         // /app/owner/name/milestone-number → board
         App.repo = { full_name: parts[0] + '/' + parts[1], owner: parts[0], name: parts[1] };
         const msNum = parseInt(parts[2], 10);
@@ -812,6 +844,11 @@ window.addEventListener('popstate', function (e) {
     App.milestone = { number: s.milestone, title: s.milestoneTitle || ('#' + s.milestone) };
     updateBreadcrumb(App.repo, App.milestone);
     loadBoard();
+  } else if (s.view === 'backlog') {
+    const [owner, name] = s.repo.split('/');
+    App.repo = { full_name: s.repo, owner, name };
+    updateBreadcrumb(App.repo, null);
+    loadBacklogScreen();
   } else if (s.view === 'milestones') {
     const [owner, name] = s.repo.split('/');
     App.repo = { full_name: s.repo, owner, name };
@@ -1028,6 +1065,31 @@ $('#btn-back-repos').on('click', function () {
   loadRepos();
 });
 
+$('#btn-go-backlog').on('click', function () {
+  history.pushState({ view: 'backlog', repo: App.repo.full_name }, '', BASE + '/app/' + App.repo.full_name + '/backlog');
+  updateBreadcrumb(App.repo, null);
+  // Ensure milestones loaded for the assign picker
+  if (!App.repoMilestones.length) {
+    apiGet(BASE + '/api/milestones', { repo: App.repo.full_name, state: 'open' })
+      .done(ms => { App.repoMilestones = ms; });
+  }
+  loadBacklogScreen();
+});
+
+$('#btn-back-milestones-from-backlog').on('click', function () {
+  history.pushState({ view: 'milestones', repo: App.repo.full_name }, '', BASE + '/app/' + App.repo.full_name);
+  updateBreadcrumb(App.repo, null);
+  loadMilestones();
+});
+
+$('#btn-new-milestone-from-backlog').on('click', function () {
+  $('#ms-title').val('');
+  $('#ms-description').val('');
+  $('#ms-due-on').val('');
+  createMilestoneModal.show();
+  setTimeout(() => $('#ms-title').trigger('focus'), 300);
+});
+
 /* -----------------------------------------------------------------------
    Create milestone
 ----------------------------------------------------------------------- */
@@ -1061,7 +1123,14 @@ $('#btn-create-milestone-submit').on('click', function () {
   .done(function (res) {
     createMilestoneModal.hide();
     toast(`Milestone "${res.milestone.title}" created.`);
-    loadMilestones($('#milestone-show-closed').is(':checked'));
+    // Refresh the milestone list and update the cached milestones for the picker
+    apiGet(BASE + '/api/milestones', { repo: App.repo.full_name, state: 'open' })
+      .done(ms => { App.repoMilestones = ms; });
+    if ($('#sub-backlog').is(':visible')) {
+      // Stay on backlog screen — milestones are refreshed above for the picker
+    } else {
+      loadMilestones($('#milestone-show-closed').is(':checked'));
+    }
   })
   .fail(function (xhr) {
     toast('Failed: ' + (xhr.responseJSON?.error ?? 'Unknown'), 'error');
@@ -1098,7 +1167,7 @@ function loadBoard() {
   $('#board-title').text(App.repo.full_name + ' / ' + App.milestone.title);
   $('#board-loading').show();
   $('#board').hide();
-  $('#backlog-panel').hide();
+  $('#backlog-indicator').hide();
 
   // If milestones weren't loaded yet (deep-linked), fetch them for the move modal
   if (!App.repoMilestones.length) {
@@ -1106,18 +1175,14 @@ function loadBoard() {
       .done(ms => { App.repoMilestones = ms; });
   }
 
-  const boardReq   = apiGet(BASE + '/api/issues', { repo: App.repo.full_name, milestone: App.milestone.number });
-  const backlogReq = apiGet(BASE + '/api/issues', { repo: App.repo.full_name, milestone: 'none' });
-
-  $.when(boardReq, backlogReq)
-    .done(function (boardData, backlogData) {
-      const issues  = boardData[0];
-      const backlog = backlogData[0];
+  apiGet(BASE + '/api/issues', { repo: App.repo.full_name, milestone: App.milestone.number })
+    .done(function (issues) {
       App.issues = issues;
       renderBoard(issues);
-      renderBacklog(backlog);
       $('#board-loading').hide();
       $('#board').show();
+      // Show backlog count link asynchronously
+      loadBacklogCount();
     })
     .fail(function (xhr) {
       $('#board-loading').html(
@@ -1149,67 +1214,178 @@ function renderBoard(issues) {
 }
 
 /* -----------------------------------------------------------------------
-   Backlog panel
+   Backlog count indicator (shown on the board)
 ----------------------------------------------------------------------- */
 
-function renderBacklog(issues) {
-  const $body = $('#backlog-body').empty();
+function loadBacklogCount() {
+  apiGet(BASE + '/api/backlog', { repo: App.repo.full_name, per_page: 10, page: 1 })
+    .done(function (data) {
+      if (data.total_count > 0) {
+        $('#backlog-count-label').text(
+          data.total_count + ' unassigned issue' + (data.total_count !== 1 ? 's' : '') + ' in backlog'
+        );
+        $('#backlog-indicator').show();
+      }
+    });
+}
 
-  if (!issues.length) {
-    $('#backlog-panel').hide();
-    return;
-  }
+$('#btn-go-backlog-from-board').on('click', function (e) {
+  e.preventDefault();
+  history.pushState({ view: 'backlog', repo: App.repo.full_name }, '', BASE + '/app/' + App.repo.full_name + '/backlog');
+  updateBreadcrumb(App.repo, null);
+  loadBacklogScreen();
+});
 
-  $('#backlog-title').text(`Backlog (${issues.length} unassigned issue${issues.length !== 1 ? 's' : ''})`);
-  $('#backlog-panel').show();
+/* =============================================================================
+   Backlog screen
+============================================================================= */
 
-  issues.forEach(function (issue) {
-    const $card = $(`
-      <div class="backlog-card" data-number="${issue.number}">
-        <span class="issue-num">#${issue.number}</span>
-        <span class="backlog-card-title">
-          <a href="${escHtml(issue.html_url)}" target="_blank">${escHtml(issue.title)}</a>
-        </span>
-        <button class="btn btn-sm btn-gh-primary btn-add-to-board"
-                style="font-size:11px;padding:2px 8px;white-space:nowrap"
-                title="Add to ${escHtml(App.milestone.title)}"
-                data-number="${issue.number}">
-          <i class="fa-solid fa-plus me-1"></i>Add to board
-        </button>
-      </div>
-    `);
-    $body.append($card);
+const BacklogState = {
+  page:     1,
+  per_page: 25,
+  q:        '',
+  total:    0,
+  pages:    1,
+  timer:    null,
+};
+
+function loadBacklogScreen() {
+  showSub('sub-backlog');
+  $('#backlog-repo-title').text(App.repo.full_name);
+  BacklogState.page = 1;
+  BacklogState.q    = '';
+  $('#backlog-search-input').val('');
+  $('#backlog-search-clear').hide();
+  fetchBacklog();
+}
+
+function fetchBacklog() {
+  $('#backlog-screen-loading').show();
+  $('#backlog-screen-results').hide();
+
+  apiGet(BASE + '/api/backlog', {
+    repo:     App.repo.full_name,
+    page:     BacklogState.page,
+    per_page: BacklogState.per_page,
+    q:        BacklogState.q,
+  })
+  .done(function (data) {
+    BacklogState.total = data.total_count;
+    BacklogState.pages = data.total_pages;
+    renderBacklogIssues(data.issues);
+    renderBacklogPagination(data);
+    $('#backlog-screen-loading').hide();
+    $('#backlog-screen-results').show();
+  })
+  .fail(function (xhr) {
+    $('#backlog-screen-loading').html(
+      '<div style="color:var(--gh-danger)">Failed to load: ' + (xhr.responseJSON?.error ?? 'Unknown') + '</div>'
+    );
   });
 }
 
-// Toggle backlog collapse
-$('#backlog-toggle').on('click', function () {
-  const open = $(this).data('open');
-  $('#backlog-body').toggle(!open);
-  $(this).data('open', open ? 0 : 1);
-  $('#backlog-chevron').toggleClass('fa-chevron-down fa-chevron-right');
+function renderBacklogIssues(issues) {
+  const $list = $('#backlog-issue-list').empty();
+
+  if (!issues.length) {
+    $list.html('<div class="text-center py-5" style="color:var(--gh-fg-muted);font-size:13px">' +
+      (BacklogState.q ? 'No issues match your search.' : 'No unassigned issues.') + '</div>');
+    $('#backlog-count-text').text('');
+    return;
+  }
+
+  const from = (BacklogState.page - 1) * BacklogState.per_page + 1;
+  const to   = from + issues.length - 1;
+  $('#backlog-count-text').text(
+    `Showing ${from}–${to} of ${BacklogState.total} issue${BacklogState.total !== 1 ? 's' : ''}` +
+    (BacklogState.q ? ` matching "${BacklogState.q}"` : '')
+  );
+
+  issues.forEach(function (issue) {
+    const labels = issue.labels
+      .filter(l => !l.name.startsWith('status:'))
+      .map(l => {
+        const bg = '#' + l.color;
+        const fg = labelTextColor(l.color);
+        return `<span class="label-badge" style="background:${bg};color:${fg}">${escHtml(l.name)}</span>`;
+      }).join('');
+
+    const assignees = issue.assignees
+      .map(a => `<img src="${escHtml(a.avatar_url)}&s=32" alt="${escHtml(a.login)}" class="assignee-avatar" title="${escHtml(a.login)}">`)
+      .join('');
+
+    const $row = $(`
+      <div class="backlog-issue-row" data-number="${issue.number}">
+        <span class="backlog-issue-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/>
+            <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"/>
+          </svg>
+        </span>
+        <div class="backlog-issue-body">
+          <a href="${escHtml(issue.html_url)}" target="_blank" class="backlog-issue-title">${escHtml(issue.title)}</a>
+          <div class="backlog-issue-meta">
+            <span class="issue-num">#${issue.number}</span>
+            ${labels}
+            ${assignees}
+          </div>
+        </div>
+        <div class="backlog-issue-actions">
+          <button class="btn btn-sm btn-gh-primary btn-backlog-assign"
+                  style="font-size:12px;padding:3px 10px;white-space:nowrap"
+                  data-number="${issue.number}">
+            <i class="fa-solid fa-plus me-1"></i>Add to milestone
+          </button>
+        </div>
+      </div>
+    `);
+    $list.append($row);
+  });
+}
+
+function renderBacklogPagination(data) {
+  const $pag = $('#backlog-pagination').empty();
+  if (data.total_pages <= 1) return;
+
+  const $prev = $(`<button class="btn btn-sm btn-gh-default" ${data.page <= 1 ? 'disabled' : ''}>
+    <i class="fa-solid fa-arrow-left me-1"></i>Previous
+  </button>`);
+  const $info = $(`<span style="color:var(--gh-fg-muted)">Page ${data.page} of ${data.total_pages}</span>`);
+  const $next = $(`<button class="btn btn-sm btn-gh-default" ${data.page >= data.total_pages ? 'disabled' : ''}>
+    Next<i class="fa-solid fa-arrow-right ms-1"></i>
+  </button>`);
+
+  $prev.on('click', function () { BacklogState.page--; fetchBacklog(); });
+  $next.on('click', function () { BacklogState.page++; fetchBacklog(); });
+
+  $pag.append($prev, $info, $next);
+}
+
+// Search with debounce
+$('#backlog-search-input').on('input', function () {
+  const q = $(this).val().trim();
+  $('#backlog-search-clear').toggle(q.length > 0);
+  clearTimeout(BacklogState.timer);
+  BacklogState.timer = setTimeout(function () {
+    BacklogState.q    = q;
+    BacklogState.page = 1;
+    fetchBacklog();
+  }, 400);
 });
 
-// "Add to board" — assign backlog issue to current milestone → top of TODO
-$(document).on('click', '.btn-add-to-board', function (e) {
-  e.stopPropagation();
-  const $btn   = $(this).prop('disabled', true);
-  const number = parseInt($(this).data('number'), 10);
+$('#backlog-search-clear').on('click', function () {
+  $('#backlog-search-input').val('').trigger('focus');
+  $(this).hide();
+  BacklogState.q    = '';
+  BacklogState.page = 1;
+  fetchBacklog();
+});
 
-  apiPost(BASE + '/api/issue_update', {
-    repo:         App.repo.full_name,
-    issue_number: number,
-    action:       'assign_milestone',
-    milestone:    App.milestone.number,
-  })
-  .done(function () {
-    toast(`Issue #${number} added to ${App.milestone.title}.`);
-    loadBoard(); // reload to reflect new card at top of TODO
-  })
-  .fail(function (xhr) {
-    $btn.prop('disabled', false);
-    toast('Failed: ' + (xhr.responseJSON?.error ?? 'Unknown'), 'error');
-  });
+// Assign issue from backlog to a milestone
+$(document).on('click', '.btn-backlog-assign', function (e) {
+  e.stopPropagation();
+  const number = parseInt($(this).data('number'), 10);
+  openMilestonePickerModal(number, 'assign_milestone');
 });
 
 /* -----------------------------------------------------------------------
@@ -1312,18 +1488,26 @@ $(document).on('click', '.card-actions button', function (e) {
 
 const moveMilestoneModal = new bootstrap.Modal(document.getElementById('modal-move-milestone'));
 
-function openMoveMilestoneModal(issueNumber) {
+/**
+ * Open the milestone picker modal.
+ * action = 'move_milestone'    — used from board cards (excludes current milestone)
+ * action = 'assign_milestone'  — used from backlog screen (shows all open milestones)
+ */
+function openMilestonePickerModal(issueNumber, action) {
   App.movingIssueNumber = issueNumber;
   const $list = $('#modal-milestone-list').empty();
 
-  const others = App.repoMilestones.filter(m => m.number !== App.milestone.number);
-  if (!others.length) {
-    $list.html('<p class="text-muted small p-2 mb-0">No other open milestones found.</p>');
+  const milestones = action === 'assign_milestone'
+    ? App.repoMilestones
+    : App.repoMilestones.filter(m => m.number !== App.milestone?.number);
+
+  if (!milestones.length) {
+    $list.html('<p style="color:var(--gh-fg-muted);font-size:13px;padding:8px">No open milestones found.</p>');
     moveMilestoneModal.show();
     return;
   }
 
-  others.forEach(function (m) {
+  milestones.forEach(function (m) {
     const $btn = $(`
       <button class="btn btn-gh-default btn-sm w-100 text-start mb-1"
               style="font-size:13px"
@@ -1334,16 +1518,21 @@ function openMoveMilestoneModal(issueNumber) {
     $btn.on('click', function () {
       moveMilestoneModal.hide();
       const target = parseInt($(this).data('milestone'), 10);
+      const targetTitle = milestones.find(m => m.number === target)?.title ?? `#${target}`;
       apiPost(BASE + '/api/issue_update', {
         repo:         App.repo.full_name,
         issue_number: App.movingIssueNumber,
-        action:       'move_milestone',
+        action,
         milestone:    target,
       })
-      .done(function (res) {
-        const targetTitle = others.find(m => m.number === target)?.title ?? `#${target}`;
-        toast(`Issue #${App.movingIssueNumber} moved to "${targetTitle}".`);
-        loadBoard();
+      .done(function () {
+        if (action === 'assign_milestone') {
+          toast(`Issue #${App.movingIssueNumber} added to "${targetTitle}".`);
+          fetchBacklog(); // refresh backlog screen
+        } else {
+          toast(`Issue #${App.movingIssueNumber} moved to "${targetTitle}".`);
+          loadBoard();
+        }
       })
       .fail(function (xhr) {
         toast('Failed: ' + (xhr.responseJSON?.error ?? 'Unknown'), 'error');
@@ -1353,6 +1542,17 @@ function openMoveMilestoneModal(issueNumber) {
   });
 
   moveMilestoneModal.show();
+}
+
+// Keep old name as alias for card action buttons
+function openMoveMilestoneModal(issueNumber) {
+  // Ensure milestones are loaded before opening
+  if (!App.repoMilestones.length) {
+    apiGet(BASE + '/api/milestones', { repo: App.repo.full_name, state: 'open' })
+      .done(function (ms) { App.repoMilestones = ms; openMilestonePickerModal(issueNumber, 'move_milestone'); });
+    return;
+  }
+  openMilestonePickerModal(issueNumber, 'move_milestone');
 }
 
 /* =============================================================================
