@@ -36,12 +36,19 @@ No Composer dependencies — the project is intentionally dependency-free.
 
 ### 1. Register a GitHub OAuth App
 
-1. Go to **GitHub → Settings → Developer settings → OAuth Apps → New OAuth App**
-2. Fill in:
-   - **Application name**: GitHub Kanban (or your chosen name)
-   - **Homepage URL**: `https://your-domain.com`
-   - **Authorization callback URL**: `https://your-domain.com/auth/callback`
-3. Copy the **Client ID** and generate a **Client Secret**
+1. Go to **https://github.com/settings/developers**
+2. Click **"New OAuth App"**
+3. Fill in the form:
+   - **Application name**: anything, e.g. `GitHub Kanban`
+   - **Homepage URL**: `https://your-domain.com` (use `http://localhost/GitHub-Project-Management` for local dev)
+   - **Authorization callback URL**: `https://your-domain.com/auth/callback` (use `http://localhost/GitHub-Project-Management/auth/callback` for local dev)
+   - Leave everything else blank
+4. Click **"Register application"**
+5. On the next page:
+   - Copy the **Client ID** — it is shown immediately
+   - Click **"Generate a new client secret"** and copy it — GitHub only shows it once
+
+No payment or approval is required. OAuth Apps for personal/local use are free and instant.
 
 ### 2. Configure the environment
 

@@ -12,5 +12,5 @@ if ($token) {
 }
 clear_session_cookie();
 
-header('Location: /');
+header('Location: ' . APP_BASE . '/');
 exit;

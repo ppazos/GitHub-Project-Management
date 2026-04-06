@@ -89,5 +89,5 @@ $user = $stmt->fetch();
 $session_token = create_session($user['id']);
 set_session_cookie($session_token);
 
-header('Location: /app');
+header('Location: ' . APP_BASE . '/app');
 exit;

@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../lib/bootstrap.php';
+$base = APP_BASE; // e.g. "/GitHub-Project-Management"
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,6 +13,7 @@ require_once __DIR__ . '/../lib/bootstrap.php';
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GitHub Kanban</title>
+  <script>const BASE = <?= json_encode($base) ?>;</script>
 
   <!-- Bootstrap 5 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -221,7 +223,7 @@ require_once __DIR__ . '/../lib/bootstrap.php';
       <i class="fa-brands fa-github" style="font-size:3.5rem;color:#24292f;margin-bottom:1rem"></i>
       <h2 class="fw-bold mb-1">GitHub Kanban</h2>
       <p class="text-muted mb-4">Manage your GitHub Issues as a Kanban board, milestone by milestone.</p>
-      <a href="/auth/login" class="btn btn-dark btn-lg w-100">
+      <a href="<?= $base ?>/auth/login" class="btn btn-dark btn-lg w-100">
         <i class="fa-brands fa-github me-2"></i>Login with GitHub
       </a>
     </div>
@@ -251,7 +253,7 @@ require_once __DIR__ . '/../lib/bootstrap.php';
     <div class="ms-auto d-flex align-items-center gap-2">
       <span class="text-white-50 small d-none d-sm-inline" id="nav-user-login"></span>
       <img src="" alt="" id="nav-avatar" class="rounded-circle d-none" style="width:28px;height:28px">
-      <a href="/auth/logout" class="btn btn-outline-secondary btn-sm">
+      <a href="<?= $base ?>/auth/logout" class="btn btn-outline-secondary btn-sm">
         <i class="fa-solid fa-right-from-bracket"></i>
         <span class="d-none d-sm-inline ms-1">Logout</span>
       </a>
@@ -433,7 +435,7 @@ function showSub(id) {
 ============================================================================= */
 
 $(function () {
-  apiGet('/api/me')
+  apiGet(BASE + '/api/me')
     .done(function (me) {
       App.user      = me;
       App.csrfToken = me.csrf_token;
@@ -462,7 +464,7 @@ function loadRepos() {
   $('#repos-loading').show();
   $('#repo-list').hide().empty();
 
-  apiGet('/api/repos')
+  apiGet(BASE + '/api/repos')
     .done(function (repos) {
       allRepos = repos;
       renderRepos(repos);
@@ -535,7 +537,7 @@ function loadMilestones(showClosed = false) {
 
   const state = showClosed ? 'all' : 'open';
 
-  apiGet('/api/milestones', { repo: App.repo.full_name, state })
+  apiGet(BASE + '/api/milestones', { repo: App.repo.full_name, state })
     .done(function (milestones) {
       renderMilestones(milestones);
       $('#milestones-loading').hide();
@@ -614,7 +616,7 @@ function loadBoard() {
   $('#board-loading').show();
   $('#board').hide();
 
-  apiGet('/api/issues', { repo: App.repo.full_name, milestone: App.milestone.number })
+  apiGet(BASE + '/api/issues', { repo: App.repo.full_name, milestone: App.milestone.number })
     .done(function (issues) {
       App.issues = issues;
       renderBoard(issues);
@@ -697,7 +699,7 @@ $(document).on('click', '.card-actions button', function (e) {
   const number = parseInt($card.data('number'), 10);
   const action = $(this).data('action');
 
-  apiPost('/api/issue_update', {
+  apiPost(BASE + '/api/issue_update', {
     repo:         App.repo.full_name,
     issue_number: number,
     action,
@@ -776,7 +778,7 @@ $(document).on('drop', '.kanban-col-body', function (e) {
   updateColCounts();
 
   // Persist to GitHub via backend
-  apiPost('/api/issue_update', {
+  apiPost(BASE + '/api/issue_update', {
     repo:         App.repo.full_name,
     issue_number: number,
     action:       'move',
@@ -832,7 +834,7 @@ $('#btn-ensure-labels').on('click', function () {
   const $btn = $(this).prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i>Working…');
 
   STATUS_LABELS.forEach(function (lbl) {
-    apiPost('/api/issue_update', {
+    apiPost(BASE + '/api/issue_update', {
       repo:   App.repo.full_name,
       action: 'ensure_label',
       label:  lbl.name,
